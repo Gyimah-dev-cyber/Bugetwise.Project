@@ -1,0 +1,8 @@
+// Implementing Expense Tracking with Automatic Category Allocation
+export const logExpense = (budget, amount, category, description) => {
+    if (budget.remainingAmount >= amount) {
+        budget.remainingAmount -= amount;
+        budget.transactions.push({ amount, category, description, date: new Date() });
+    }
+    return budget;
+};
