@@ -1,0 +1,9 @@
+// Function to track savings progress with notification on goal completion
+export const trackSavings = (goal, amountSaved) => 
+    goal.savedAmount += amountSaved;
+    goal.progress = ((goal.savedAmount / goal.targetAmount) * 100).toFixed(2);
+    if (goal.savedAmount >= goal.targetAmount) {
+        goal.completed = true;
+        goal.completionMessage = `Congratulations! You've reached your savings goal of $${goal.targetAmount}.`;
+    }
+    return goal;
