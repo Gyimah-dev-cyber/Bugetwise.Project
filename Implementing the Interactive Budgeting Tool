@@ -1,0 +1,19 @@
+// Implementing the Interactive Budgeting Tool
+export const createBudget = (userId, budgetDetails) => {
+    return {
+        userId,
+        categories: budgetDetails.categories,
+        totalAmount: budgetDetails.totalAmount,
+        remainingAmount: budgetDetails.totalAmount,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        transactions: []
+    };
+};
+
+// Function to update budget
+export const updateBudget = (budget, newAmount) => 
+    budget.totalAmount = newAmount;
+    budget.remainingAmount = newAmount - budget.transactions.reduce((acc, t) => acc + t.amount, 0);
+    budget.updatedAt = new Date();
+    return budget;
