@@ -1,0 +1,127 @@
+// server.js
+const express = require('express');
+const dotenv = require('dotenv');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const authRoutes = require('./routes/authRoutes');
+const transactionRoutes = require('./routes/transactionRoutes');
+const budgetRoutes = require('./routes/budgetRoutes');
+const billRoutes = require('./routes/billRoutes');
+const forecastRoutes = require('./routes/forecastRoutes');
+const sharedBudgetRoutes = require('./routes/sharedBudgetRoutes');
+const exportRoutes = require('./routes/exportRoutes');
+const investmentRoutes = require('./routes/investmentRoutes');
+
+dotenv.config();
+const app = express();
+
+// Middleware
+app.use(express.json());
+app.use(cors());
+
+// Database Connection
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => console.log('MongoDB Connected'))
+.catch(err => console.log(err));
+
+// Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/transactions', transactionRoutes);
+app.use('/api/budget', budgetRoutes);
+app.use('/api/bills', billRoutes);
+app.use('/api/forecast', forecastRoutes);
+app.use('/api/shared-budget', sharedBudgetRoutes);
+app.use('/api/export', exportRoutes);
+app.use('/api/investments', investmentRoutes);
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+
+// models/Investment.js
+const mongoose = require('mongoose');
+
+const InvestmentSchema = new mongoose.Schema({
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    assetName: { type: String, required: true },
+    type: { type: String, enum: ['stock', 'crypto', 'real estate', 'other'], required: true },
+    amountInvested: { type: Number, required: true },
+    currentValue: { type: Number, required: true },
+    datePurchased: { type: Date, required: true },
+}, { timestamps: true });
+
+module.exports = mongoose.model('Investment', InvestmentSchema);
+
+
+// routes/investmentRoutes.js
+const express = require('express');
+const Investment = require('../models/Investment');
+const authMiddleware = require('../config/authMiddleware');
+const router = express.Router();
+
+// Create Investment
+router.post('/', authMiddleware, async (req, res) => {
+    const { assetName, type, amountInvested, currentValue, datePurchased } = req.body;
+    try {
+        const investment = new Investment({
+            userId: req.user.id,
+            assetName,
+            type,
+            amountInvested,
+            currentValue,
+            datePurchased
+        });
+        await investment.save();
+        res.json(investment);
+    } catch (err) {
+        res.status(500).send('Server error');
+    }
+});
+
+// Get User Investments
+router.get('/', authMiddleware, async (req, res) => {
+    try {
+        const investments = await Investment.find({ userId: req.user.id });
+        res.json(investments);
+    } catch (err) {
+        res.status(500).send('Server error');
+    }
+});
+
+// Update Investment
+router.put('/:id', authMiddleware, async (req, res) => {
+    try {
+        let investment = await Investment.findById(req.params.id);
+        if (!investment || investment.userId.toString() !== req.user.id) {
+            return res.status(404).json({ msg: 'Investment not found' });
+        }
+        investment = await Investment.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        res.json(investment);
+    } catch (err) {
+        res.status(500).send('Server error');
+    }
+});
+
+// Delete Investment
+router.delete('/:id', authMiddleware, async (req, res) => {
+    try {
+        let investment = await Investment.findById(req.params.id);
+        if (!investment || investment.userId.toString() !== req.user.id) {
+            return res.status(404).json({ msg: 'Investment not found' });
+        }
+        await investment.remove();
+        res.json({ msg: 'Investment removed' });
+    } catch (err) {
+        res.status(500).send('Server error');
+    }
+});
+
+module.exports = router;
+
+
+// .env
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret
