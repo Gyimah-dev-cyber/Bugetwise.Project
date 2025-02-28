@@ -1,0 +1,11 @@
+/ Implementing user engagement notifications and referral bonus system
+export const sendNotification = (user, message) => {
+    return `Notification sent to ${user.email}: ${message}`;
+};
+
+// Function to send financial tips
+export const sendFinancialTips = (user) => 
+    const tips = 
+        'Save at least 20% of your income.',
+        'Track your daily expenses.'
+        'Invest wisely in low-risk asset
